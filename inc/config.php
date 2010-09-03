@@ -13,6 +13,7 @@ define('SQL_DB', 'proxy');
 
 // Wanna know what she's doin'?
 define('LOG_URLS', TRUE);
-
+define('DEBUG',	TRUE);
+define('LOG_FILE', 'sre.log');
 
 ?>
