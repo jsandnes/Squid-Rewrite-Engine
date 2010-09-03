@@ -16,7 +16,7 @@ class rewriter {
 	
 		//Check if we want to redirect, or block this URL.
 
-		if(!$this->rewrite($this->proxyData[0])) {
+		if(!$this->rewrite($this->proxyData)) {
 			print $this->proxyData[0]."\n";
 
 			//Since its not redirected, check if we want to log the search query if this is a search engine.
@@ -31,8 +31,24 @@ class rewriter {
 
 	}
 
-	private function rewrite($url) {
+	private function rewrite($data) {
+				
+		//Get the domain name from the URL
+		@preg_match('@^(?:http://)?([^/]+)@i', $data[0], $domain);
+			
+		$q = mysql_query("SELECT id,redirecturl,statuscode FROM rewriterules WHERE '$domain[1]' REGEXP urlexpr"); //or die (mysql_error());
+		$r = mysql_fetch_object($q);
 		
+		if (isset($r->id)) {
+			
+			if(DEBUG)
+				@$this->log("Tried: ".$domain[1]);
+			
+			echo $r->statuscode.":".$r->redirecturl."\n";
+			
+			return TRUE;
+		}
+	
 	}
 	private function log_url($args) {
 
@@ -45,10 +61,12 @@ class rewriter {
 	}
 	private function log_search_engine($data) {	
 
+		//Get the domain name from the URL
 		@preg_match('@^(?:http://)?([^/]+)@i', $data[0], $domain);
 			
 		$q = mysql_query("SELECT id,qexpr FROM robots WHERE '$domain[1]' REGEXP urlexpr"); //or die (mysql_error());
 		$r = mysql_fetch_object($q);
+		
 		if (isset($r->id)) {
 			@preg_match('/'.$r->qexpr.'/', $data[0], $query);
 			@preg_match('/((\d+).(\d+).(\d+).(\d+))/', $data[1], $ip);
